@@ -1,15 +1,14 @@
-import axios from 'axios'
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: "/api",
   headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  },
-})
+    Accept: "application/json"
+  }
+});
 
 export default () => {
   // Axios configuration
-}
+};
 
-export { api }
+export { api };

@@ -25,3 +25,16 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/database/*.sqlite
+/database/*.sqlite-*
+/database/task-attachments-backup.zip
+
+# Local uploaded attachments
+/storage/app/public/task-attachments/
+
+# Temporary PHP diagnostic file
+/public/php-check.php
+/.agents/
+
+# One-time database migration utility
+/database/transfer-to-neon.php

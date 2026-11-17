@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -30,14 +31,19 @@ class TaskController extends Controller
         }
 
         // Filter by priority
-        if ($request->filled('priority')) {
-            $query->where('priority', $request->priority);
-        }
+if ($request->filled('priority')) {
+    $query->where('priority', $request->priority);
+}
 
-        $tasks = $query->latest()->get();
+// Filter by category
+if ($request->filled('category')) {
+    $query->where('category', $request->category);
+}
 
-        return response()->json($tasks);
-    }
+$tasks = $query->latest()->get();
+
+return response()->json($tasks);
+}
 
     /**
      * Create a new task.
@@ -45,14 +51,57 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:150',
-            'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'priority' => 'required|in:low,medium,high',
-            'status' => 'nullable|in:pending,completed',
-        ]);
+    'title' => 'required|string|max:150',
+    'description' => 'nullable|string',
+    'due_date' => 'nullable|date_format:Y-m-d H:i:s',
+    'priority' => 'required|in:low,medium,high',
+    'category' => 'required|in:School,Work,Personal,Health,Other',
+    'goal_id' => 'nullable|exists:goals,id',
+    'status' => 'nullable|in:pending,completed',
 
-        $task = Task::create($validated);
+    'is_recurring' => 'sometimes|boolean',
+    'recurrence_frequency' => 'nullable|required_if:is_recurring,1|in:daily,weekly,monthly,custom',
+    'recurrence_interval' => 'sometimes|integer|min:1|max:365',
+    'recurrence_end_date' => 'nullable|date',
+]);
+
+        if (!empty($validated['is_recurring']) && $validated['is_recurring']) {
+    if (empty($validated['due_date'])) {
+        return response()->json([
+            'message' => 'A due date is required for recurring tasks.',
+        ], 422);
+    }
+
+    $interval = max(1, (int) ($validated['recurrence_interval'] ?? 1));
+
+    $firstDate = Carbon::createFromFormat(
+        'Y-m-d H:i:s',
+        $validated['due_date'],
+        'Asia/Manila'
+    );
+
+    $nextDate = match ($validated['recurrence_frequency']) {
+        'daily' => $firstDate->copy()->addDays($interval),
+        'weekly' => $firstDate->copy()->addWeeks($interval),
+        'monthly' => $firstDate->copy()->addMonthsNoOverflow($interval),
+        'custom' => $firstDate->copy()->addDays($interval),
+    };
+
+    $validated['next_recurrence_date'] = $nextDate;
+
+    if (!empty($validated['recurrence_end_date'])) {
+        $validated['recurrence_end_date'] = Carbon::parse(
+            $validated['recurrence_end_date'],
+            'Asia/Manila'
+        )->endOfDay();
+    }
+} else {
+    $validated['is_recurring'] = false;
+    $validated['recurrence_frequency'] = null;
+    $validated['next_recurrence_date'] = null;
+}
+
+$task = Task::create($validated);
 
         return response()->json([
             'message' => 'Task created successfully.',
@@ -74,12 +123,19 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:150',
-            'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'priority' => 'required|in:low,medium,high',
-            'status' => 'required|in:pending,completed',
-        ]);
+    'title' => 'required|string|max:150',
+    'description' => 'nullable|string',
+    'due_date' => 'nullable|date_format:Y-m-d H:i:s',
+    'priority' => 'required|in:low,medium,high',
+    'category' => 'required|in:School,Work,Personal,Health,Other',
+    'goal_id' => 'nullable|exists:goals,id',
+    'status' => 'required|in:pending,completed',
+
+    'is_recurring' => 'sometimes|boolean',
+    'recurrence_frequency' => 'nullable|required_if:is_recurring,1|in:daily,weekly,monthly,custom',
+    'recurrence_interval' => 'sometimes|integer|min:1|max:365',
+    'recurrence_end_date' => 'nullable|date',
+]);
 
         $task->update($validated);
 
