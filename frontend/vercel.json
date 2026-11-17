@@ -1,0 +1,13 @@
+
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://task-tracker-api-ipyh.onrender.com/api/:path*"
+    },
+    {
+      "source": "/storage/:path*",
+      "destination": "https://task-tracker-api-ipyh.onrender.com/storage/:path*"
+    }
+  ]
+}
