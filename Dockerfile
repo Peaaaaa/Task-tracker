@@ -18,12 +18,10 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install \
     pdo_pgsql \
     bcmath \
-    mbstring \
     exif \
     gd \
     zip \
     intl \
-    opcache \
     pcntl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
