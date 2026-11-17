@@ -15,16 +15,16 @@ RUN apt-get update && apt-get install -y \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j2 \
-        pdo_pgsql \
-        bcmath \
-        mbstring \
-        exif \
-        gd \
-        zip \
-        intl \
-        opcache \
-        pcntl \
+    && docker-php-ext-install \
+    pdo_pgsql \
+    bcmath \
+    mbstring \
+    exif \
+    gd \
+    zip \
+    intl \
+    opcache \
+    pcntl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
